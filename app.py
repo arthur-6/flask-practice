@@ -30,7 +30,33 @@ def index():
     else:
         tasks = Todo.query.order_by(Todo.date_created).all() # pego todas os registros do database e ordeno por data criada
         return render_template('index.html', tasks=tasks)
-    #return render_template('index.html')
+
+@app.route('/delete/<int:id>') # rota de requisição com o método DELETE
+def delete(id):
+    task_to_delete = Todo.query.get_or_404(id) # caso não consiga dar o get dá 404
+
+    try:
+        db.session.delete(task_to_delete) 
+        db.session.commit()
+        return redirect('/')
+    except:
+        return 'Erro ao deletar tarefa'
+
+@app.route('/update/<int:id>', methods=['GET', 'POST']) # rota de requisição com o método UPDATE
+def update(id):
+    task_to_update = Todo.query.get_or_404(id)
+
+    if request.method == 'POST':
+        task_to_update.content = request.form['content']
+        
+        try:
+            db.session.commit() # passo apenas o commit pq nao estou adicionando um novo, apenas alterando
+            return redirect('/')
+        except:
+            return 'Erro ao editar tarefa'
+    else:
+        return render_template('update.html', task=task_to_update)
+
 
 if __name__ == "__main__":
     app.run(debug=True)
